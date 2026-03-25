@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/* Card flip animation */
+.card-inner {
+  transition: transform 0.5s ease;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-front {
+  transform: rotateY(180deg);
+}
+
+/* Mismatch shake */
+@keyframes shake {
+  0%, 100% { transform: rotateY(180deg) translateX(0); }
+  25% { transform: rotateY(180deg) translateX(-4px); }
+  75% { transform: rotateY(180deg) translateX(4px); }
+}
+
+.card.mismatch .card-front {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* Grocery list lined paper */
+.lined-paper {
+  background-image:
+    repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      #a8c4e0 27px,
+      #a8c4e0 28px
+    );
+  background-position: 0 20px;
+}
+
+/* Ripped edge effect */
+.ripped-edge {
+  --rip-size: 12px;
+  -webkit-mask-image:
+    linear-gradient(to right,
+      transparent 0px,
+      black 2px,
+      black calc(100% - 2px),
+      transparent 100%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,12 Q10,0 20,8 T40,6 T60,10 T80,4 T100,8 T120,2 T140,10 T160,6 T180,8 T200,4 L200,12 Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%, 200px var(--rip-size);
+  -webkit-mask-position: 0 var(--rip-size), 0 0;
+  -webkit-mask-repeat: no-repeat, repeat-x;
+  -webkit-mask-composite: source-over;
+  mask-image:
+    linear-gradient(to right,
+      transparent 0px,
+      black 2px,
+      black calc(100% - 2px),
+      transparent 100%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,12 Q10,0 20,8 T40,6 T60,10 T80,4 T100,8 T120,2 T140,10 T160,6 T180,8 T200,4 L200,12 Z' fill='black'/%3E%3C/svg%3E");
+  mask-size: 100% 100%, 200px var(--rip-size);
+  mask-position: 0 var(--rip-size), 0 0;
+  mask-repeat: no-repeat, repeat-x;
+  mask-composite: add;
+  padding-top: var(--rip-size);
+}
+
+/* Timer bar animation */
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.timer-warning {
+  animation: timerPulse 0.5s ease-in-out infinite;
+}
+
+/* Prevent double-tap zoom on cards */
+.card {
+  touch-action: manipulation;
+}
+
+/* Game button active state */
+.game-button:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+}
