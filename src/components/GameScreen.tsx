@@ -22,12 +22,15 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
   const [timeRemaining, setTimeRemaining] = useState<number | null>(
     config.timer ? config.timerSeconds : null
   );
+  const [cardsReady, setCardsReady] = useState(false);
   const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hasCompleted = useRef(false);
 
   // Initialize cards
   useEffect(() => {
     setCards(shuffleCards(config.items as CardType[]));
+    setCardsReady(true);
   }, [difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Preload audio
@@ -42,9 +45,9 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     });
   }, [config.items]);
 
-  // Timer
+  // Timer — only starts after cards are rendered
   useEffect(() => {
-    if (!config.timer) return;
+    if (!config.timer || !cardsReady) return;
 
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
@@ -60,18 +63,20 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [config.timer]);
+  }, [config.timer, cardsReady]);
 
   // Check timer expiry
   useEffect(() => {
-    if (timeRemaining === 0) {
+    if (timeRemaining === 0 && !hasCompleted.current) {
+      hasCompleted.current = true;
       onComplete(flipCount, true);
     }
   }, [timeRemaining, flipCount, onComplete]);
 
   // Check win condition
   useEffect(() => {
-    if (matchedIds.length === config.pairs && matchedIds.length > 0) {
+    if (matchedIds.length === config.pairs && matchedIds.length > 0 && !hasCompleted.current) {
+      hasCompleted.current = true;
       if (timerRef.current) clearInterval(timerRef.current);
       setTimeout(() => onComplete(flipCount, false), 600);
     }
