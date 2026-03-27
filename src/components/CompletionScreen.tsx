@@ -102,36 +102,12 @@ export default function CompletionScreen({
           <button
             onClick={onPlayAgain}
             className="game-button w-full"
-            style={{
-              background: "linear-gradient(180deg, #006E8D 0%, #005466 100%)",
-              color: "#FEC600",
-              fontFamily: "var(--font-pixelify), monospace",
-              fontWeight: 700,
-              border: "none",
-              borderRadius: "10px",
-              borderBottom: "3px solid #003D4A",
-              padding: "14px 24px",
-              fontSize: "16px",
-              cursor: "pointer",
-            }}
           >
             Play Again
           </button>
           <button
             onClick={onChooseLevel}
             className="game-button w-full"
-            style={{
-              background: "linear-gradient(180deg, #006E8D 0%, #005466 100%)",
-              color: "#FEC600",
-              fontFamily: "var(--font-pixelify), monospace",
-              fontWeight: 700,
-              border: "none",
-              borderRadius: "10px",
-              borderBottom: "3px solid #003D4A",
-              padding: "14px 24px",
-              fontSize: "16px",
-              cursor: "pointer",
-            }}
           >
             Choose Level
           </button>
