@@ -8,7 +8,6 @@ export interface VocabItem {
 
 export interface Card extends VocabItem {
   cardIndex: number;
-  isFlipped: boolean;
   isMatched: boolean;
 }
 
@@ -74,7 +73,6 @@ export function shuffleCards(items: VocabItem[]): Card[] {
   const cards: Card[] = [...items, ...items].map((item, i) => ({
     ...item,
     cardIndex: i,
-    isFlipped: false,
     isMatched: false,
   }));
   for (let i = cards.length - 1; i > 0; i--) {

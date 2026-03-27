@@ -43,19 +43,7 @@ export default function HomeScreen({ onSelectDifficulty }: HomeScreenProps) {
             <button
               key={key}
               onClick={() => onSelectDifficulty(key)}
-              className="game-button w-full text-lg"
-              style={{
-                background: "linear-gradient(180deg, #006E8D 0%, #005466 100%)",
-                color: "#FEC600",
-                fontFamily: "var(--font-pixelify), monospace",
-                fontWeight: 700,
-                border: "none",
-                borderRadius: "10px",
-                borderBottom: "3px solid #003D4A",
-                padding: "14px 24px",
-                fontSize: "18px",
-                cursor: "pointer",
-              }}
+              className="game-button w-full"
             >
               {DIFFICULTIES[key].label}
             </button>

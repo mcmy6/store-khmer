@@ -13,7 +13,7 @@ interface GameScreenProps {
 
 export default function GameScreen({ difficulty, onComplete, onHome }: GameScreenProps) {
   const config = DIFFICULTIES[difficulty];
-  const [cards, setCards] = useState<CardType[]>([]);
+  const [cards, setCards] = useState<CardType[]>(() => shuffleCards(config.items));
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [matchedIds, setMatchedIds] = useState<string[]>([]);
   const [flipCount, setFlipCount] = useState(0);
@@ -22,16 +22,10 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
   const [timeRemaining, setTimeRemaining] = useState<number | null>(
     config.timer ? config.timerSeconds : null
   );
-  const [cardsReady, setCardsReady] = useState(false);
   const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasCompleted = useRef(false);
-
-  // Initialize cards
-  useEffect(() => {
-    setCards(shuffleCards(config.items as CardType[]));
-    setCardsReady(true);
-  }, [difficulty]); // eslint-disable-line react-hooks/exhaustive-deps
+  const flipCountRef = useRef(0);
 
   // Preload audio
   useEffect(() => {
@@ -45,9 +39,20 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     });
   }, [config.items]);
 
-  // Timer — only starts after cards are rendered
+  // Stop all audio on unmount
   useEffect(() => {
-    if (!config.timer || !cardsReady) return;
+    const cache = audioCache.current;
+    return () => {
+      cache.forEach((audio) => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+    };
+  }, []);
+
+  // Timer
+  useEffect(() => {
+    if (!config.timer) return;
 
     timerRef.current = setInterval(() => {
       setTimeRemaining((prev) => {
@@ -63,7 +68,7 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [config.timer, cardsReady]);
+  }, [config.timer]);
 
   // Check timer expiry
   useEffect(() => {
@@ -78,7 +83,7 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     if (matchedIds.length === config.pairs && matchedIds.length > 0 && !hasCompleted.current) {
       hasCompleted.current = true;
       if (timerRef.current) clearInterval(timerRef.current);
-      setTimeout(() => onComplete(flipCount, false), 600);
+      setTimeout(() => onComplete(flipCountRef.current, false), 600);
     }
   }, [matchedIds.length, config.pairs, flipCount, onComplete]);
 
@@ -101,7 +106,10 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
 
       const newFlipped = [...flippedIndices, index];
       setFlippedIndices(newFlipped);
-      setFlipCount((prev) => prev + 1);
+      setFlipCount((prev) => {
+        flipCountRef.current = prev + 1;
+        return prev + 1;
+      });
 
       // Play audio
       playAudio(cards[index].audio);
