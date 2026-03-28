@@ -28,7 +28,7 @@
 }
 
 .card.mismatch .card-front {
-  animation: shake 0.4s ease-in-out;
+  animation: shake 0.3s ease-in-out;
 }
 
 /* Grocery list lined paper */

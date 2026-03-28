@@ -54,7 +54,7 @@ export default function CompletionScreen({
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[#FAF0D6]/75" />
+        <div className="absolute inset-0 bg-[#FAF0D6]/85" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center px-6 max-w-sm">
