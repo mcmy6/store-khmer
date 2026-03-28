@@ -19,7 +19,7 @@ export default function HomeScreen({ onSelectDifficulty }: HomeScreenProps) {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[#FAF0D6]/85" />
+        <div className="absolute inset-0 bg-[#FAF0D6]/50" />
       </div>
 
       {/* Green solid border */}
