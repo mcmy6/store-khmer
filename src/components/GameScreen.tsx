@@ -23,6 +23,7 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     config.timer ? config.timerSeconds : null
   );
   const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const activeAudio = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasCompleted = useRef(false);
   const flipCountRef = useRef(0);
@@ -87,15 +88,26 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
     }
   }, [matchedIds.length, config.pairs, flipCount, onComplete]);
 
-  const playAudio = useCallback((audioSrc: string) => {
-    const cached = audioCache.current.get(audioSrc);
-    if (cached) {
-      cached.currentTime = 0;
-      cached.play().catch(() => {});
-    } else {
-      const audio = new Audio(audioSrc);
-      audio.play().catch(() => {});
-    }
+  const playAudio = useCallback((audioSrc: string): Promise<void> => {
+    return new Promise((resolve) => {
+      // Stop previous audio
+      if (activeAudio.current) {
+        activeAudio.current.pause();
+        activeAudio.current.currentTime = 0;
+      }
+
+      const cached = audioCache.current.get(audioSrc);
+      const audio = cached || new Audio(audioSrc);
+      audio.currentTime = 0;
+
+      const onEnd = () => {
+        audio.removeEventListener("ended", onEnd);
+        resolve();
+      };
+      audio.addEventListener("ended", onEnd);
+      audio.play().catch(() => resolve());
+      activeAudio.current = audio;
+    });
   }, []);
 
   const handleCardClick = useCallback(
@@ -111,39 +123,41 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
         return prev + 1;
       });
 
-      // Play audio
-      playAudio(cards[index].audio);
+      // Play audio — block further clicks until it finishes
+      setIsProcessing(true);
+      playAudio(cards[index].audio).then(() => {
+        if (newFlipped.length === 2) {
+          const [first, second] = newFlipped;
+          const card1 = cards[first];
+          const card2 = cards[second];
 
-      if (newFlipped.length === 2) {
-        setIsProcessing(true);
-        const [first, second] = newFlipped;
-        const card1 = cards[first];
-        const card2 = cards[second];
-
-        if (card1.id === card2.id) {
-          // Match!
-          setTimeout(() => {
-            setMatchedIds((prev) => [...prev, card1.id]);
-            setCards((prev) =>
-              prev.map((c, i) =>
-                i === first || i === second ? { ...c, isMatched: true } : c
-              )
-            );
-            setFlippedIndices([]);
-            setIsProcessing(false);
-          }, 400);
-        } else {
-          // Mismatch
-          setTimeout(() => {
-            setMismatchIndices([first, second]);
+          if (card1.id === card2.id) {
+            // Match!
             setTimeout(() => {
-              setMismatchIndices([]);
+              setMatchedIds((prev) => [...prev, card1.id]);
+              setCards((prev) =>
+                prev.map((c, i) =>
+                  i === first || i === second ? { ...c, isMatched: true } : c
+                )
+              );
               setFlippedIndices([]);
               setIsProcessing(false);
-            }, 600);
-          }, 800);
+            }, 200);
+          } else {
+            // Mismatch
+            setTimeout(() => {
+              setMismatchIndices([first, second]);
+              setTimeout(() => {
+                setMismatchIndices([]);
+                setFlippedIndices([]);
+                setIsProcessing(false);
+              }, 300);
+            }, 300);
+          }
+        } else {
+          setIsProcessing(false);
         }
-      }
+      });
     },
     [isProcessing, flippedIndices, cards, playAudio]
   );
@@ -208,6 +222,8 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
               isMismatch={mismatchIndices.includes(index)}
               onClick={() => handleCardClick(index)}
               gridColumns={config.gridColumns}
+              difficulty={difficulty}
+              cardPosition={index}
             />
           ))}
         </div>

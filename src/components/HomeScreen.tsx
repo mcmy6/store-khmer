@@ -19,11 +19,11 @@ export default function HomeScreen({ onSelectDifficulty }: HomeScreenProps) {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[#FAF0D6]/70" />
+        <div className="absolute inset-0 bg-[#FAF0D6]/85" />
       </div>
 
-      {/* Green dashed border */}
-      <div className="relative z-10 m-4 sm:m-8 flex-1 flex flex-col items-center justify-center w-[calc(100%-2rem)] sm:w-[calc(100%-4rem)] border-[3px] border-dashed border-[#2E8B6E] rounded-xl p-6 sm:p-10">
+      {/* Green solid border */}
+      <div className="relative z-10 m-4 sm:m-8 flex-1 flex flex-col items-center justify-center w-[calc(100%-2rem)] sm:w-[calc(100%-4rem)] border-[3px] border-solid border-[#2E8B6E] rounded-xl p-6 sm:p-10">
         {/* Title */}
         <h1 className="text-4xl sm:text-5xl font-bold text-[#75282B] tracking-wide mb-1">
           STORE KHMER
