@@ -31,48 +31,6 @@
   animation: shake 0.3s ease-in-out;
 }
 
-/* Grocery list lined paper */
-.lined-paper {
-  background-image:
-    repeating-linear-gradient(
-      transparent,
-      transparent 27px,
-      #a8c4e0 27px,
-      #a8c4e0 28px
-    );
-  background-position: 0 20px;
-}
-
-/* Ripped edge effect */
-.ripped-edge {
-  --rip-size: 12px;
-  -webkit-mask-image:
-    linear-gradient(to right,
-      transparent 0px,
-      black 2px,
-      black calc(100% - 2px),
-      transparent 100%
-    ),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,12 Q10,0 20,8 T40,6 T60,10 T80,4 T100,8 T120,2 T140,10 T160,6 T180,8 T200,4 L200,12 Z' fill='black'/%3E%3C/svg%3E");
-  -webkit-mask-size: 100% 100%, 200px var(--rip-size);
-  -webkit-mask-position: 0 var(--rip-size), 0 0;
-  -webkit-mask-repeat: no-repeat, repeat-x;
-  -webkit-mask-composite: source-over;
-  mask-image:
-    linear-gradient(to right,
-      transparent 0px,
-      black 2px,
-      black calc(100% - 2px),
-      transparent 100%
-    ),
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,12 Q10,0 20,8 T40,6 T60,10 T80,4 T100,8 T120,2 T140,10 T160,6 T180,8 T200,4 L200,12 Z' fill='black'/%3E%3C/svg%3E");
-  mask-size: 100% 100%, 200px var(--rip-size);
-  mask-position: 0 var(--rip-size), 0 0;
-  mask-repeat: no-repeat, repeat-x;
-  mask-composite: add;
-  padding-top: var(--rip-size);
-}
-
 /* Timer bar animation */
 @keyframes timerPulse {
   0%, 100% { opacity: 1; }
@@ -105,4 +63,26 @@
 .game-button:active {
   transform: translateY(2px);
   border-bottom-width: 1px;
+}
+
+/* Bag slot bounce */
+@keyframes slotBounce {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.15); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.bag-slot-bounce {
+  animation: slotBounce 0.5s ease-out;
+}
+
+/* Confetti */
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
+}
+
+.confetti-piece {
+  animation: confettiFall 2s ease-out forwards;
 }

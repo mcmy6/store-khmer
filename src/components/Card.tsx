@@ -86,21 +86,57 @@ export default function GameCard({
           className={`card-front card-face absolute inset-0 rounded-xl ${borderClass} overflow-hidden flex flex-col items-center justify-center p-2 ${isMatched ? "bg-[#2E8B6E]/10" : "bg-[#FAF0D6]"}`}
           style={showFront ? glowStyle : {}}
         >
-          <div className="relative w-[60%] aspect-square mb-1">
-            <Image
-              src={card.image}
-              alt={card.english}
-              fill
-              className="object-contain"
-              sizes="120px"
-            />
-          </div>
-          <p className="font-bold text-[#75282B] text-sm sm:text-base leading-tight text-center">
-            {card.khmer}
-          </p>
-          <p className="text-[#8B5E3C] text-xs leading-tight text-center">
-            {card.english}
-          </p>
+          {card.variant === "full" && (
+            <>
+              <div className="relative w-[50%] aspect-square mb-1">
+                <Image
+                  src={card.image}
+                  alt={card.english}
+                  fill
+                  className="object-contain"
+                  sizes="120px"
+                />
+              </div>
+              <p
+                className="font-bold text-[#75282B] text-sm leading-tight text-center"
+                style={{ fontFamily: "var(--font-khmer), serif" }}
+              >
+                {card.khmer}
+              </p>
+              <p className="text-[#8B5E3C] text-xs leading-tight text-center">
+                {card.phonetic}
+              </p>
+            </>
+          )}
+          {card.variant === "image" && (
+            <>
+              <div className="relative w-[60%] aspect-square mb-1">
+                <Image
+                  src={card.image}
+                  alt={card.english}
+                  fill
+                  className="object-contain"
+                  sizes="120px"
+                />
+              </div>
+              <p className="font-bold text-[#75282B] text-sm sm:text-base leading-tight text-center">
+                {card.english}
+              </p>
+            </>
+          )}
+          {card.variant === "text" && (
+            <>
+              <p
+                className="font-bold text-[#75282B] text-xl sm:text-2xl leading-tight text-center mb-1"
+                style={{ fontFamily: "var(--font-khmer), serif" }}
+              >
+                {card.khmer}
+              </p>
+              <p className="text-[#8B5E3C] text-sm leading-tight text-center">
+                {card.phonetic}
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>
