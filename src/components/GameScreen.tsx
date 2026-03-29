@@ -26,24 +26,27 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
   const audioCtx = useRef<AudioContext | null>(null);
   const audioBuffers = useRef<Map<string, AudioBuffer>>(new Map());
   const activeSource = useRef<AudioBufferSourceNode | null>(null);
+  const activeHtmlAudio = useRef<HTMLAudioElement | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasCompleted = useRef(false);
   const flipCountRef = useRef(0);
 
-  // Initialize AudioContext and preload audio buffers
+  // Preload audio buffers (fetch raw data, decode after context exists)
+  const rawAudioData = useRef<Map<string, ArrayBuffer>>(new Map());
   useEffect(() => {
-    const ctx = audioCtx.current || new AudioContext();
-    audioCtx.current = ctx;
-
     config.items.forEach(async (item) => {
-      if (audioBuffers.current.has(item.audio)) return;
+      if (rawAudioData.current.has(item.audio) || audioBuffers.current.has(item.audio)) return;
       try {
         const response = await fetch(item.audio);
         const arrayBuffer = await response.arrayBuffer();
-        const buffer = await ctx.decodeAudioData(arrayBuffer);
-        audioBuffers.current.set(item.audio, buffer);
+        rawAudioData.current.set(item.audio, arrayBuffer);
+        // If context already exists, decode immediately
+        if (audioCtx.current) {
+          const buffer = await audioCtx.current.decodeAudioData(arrayBuffer.slice(0));
+          audioBuffers.current.set(item.audio, buffer);
+        }
       } catch {
-        // Silently fail — audio will just not play for this item
+        // Silently fail
       }
     });
 
@@ -53,6 +56,29 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
       }
     };
   }, [config.items]);
+
+  // Initialize AudioContext on first user gesture and decode all preloaded audio
+  const ensureAudioContext = useCallback(() => {
+    if (audioCtx.current) {
+      if (audioCtx.current.state === "suspended") {
+        audioCtx.current.resume();
+      }
+      return audioCtx.current;
+    }
+    const ctx = new AudioContext();
+    audioCtx.current = ctx;
+    // Decode all pre-fetched raw audio data
+    rawAudioData.current.forEach(async (arrayBuffer, key) => {
+      if (audioBuffers.current.has(key)) return;
+      try {
+        const buffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+        audioBuffers.current.set(key, buffer);
+      } catch {
+        // Silently fail
+      }
+    });
+    return ctx;
+  }, []);
 
   // Timer
   useEffect(() => {
@@ -77,8 +103,9 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
   // Beep countdown at 5 seconds
   useEffect(() => {
     if (timeRemaining !== null && timeRemaining > 0 && timeRemaining <= 5) {
+      // Only beep if context was already created by a user tap
+      if (!audioCtx.current) return;
       const ctx = audioCtx.current;
-      if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
@@ -111,32 +138,35 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
 
   const playAudio = useCallback((audioSrc: string): Promise<void> => {
     return new Promise((resolve) => {
-      const ctx = audioCtx.current;
+      const ctx = ensureAudioContext();
       const buffer = audioBuffers.current.get(audioSrc);
 
-      if (!ctx || !buffer) {
-        resolve();
-        return;
-      }
-
-      // Resume context if suspended (mobile browser policy)
-      if (ctx.state === "suspended") {
-        ctx.resume();
-      }
-
-      // Stop previous audio
+      // Stop any previous audio
       if (activeSource.current) {
         try { activeSource.current.stop(); } catch {}
       }
+      if (activeHtmlAudio.current) {
+        activeHtmlAudio.current.pause();
+        activeHtmlAudio.current.currentTime = 0;
+      }
 
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.connect(ctx.destination);
-      source.onended = () => resolve();
-      source.start(0);
-      activeSource.current = source;
+      if (buffer) {
+        // Web Audio API path (preferred — works reliably once context is unlocked)
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(ctx.destination);
+        source.onended = () => resolve();
+        source.start(0);
+        activeSource.current = source;
+      } else {
+        // HTMLAudioElement fallback (first tap before buffers are decoded)
+        const audio = new Audio(audioSrc);
+        audio.addEventListener("ended", () => resolve(), { once: true });
+        audio.play().catch(() => resolve());
+        activeHtmlAudio.current = audio;
+      }
     });
-  }, []);
+  }, [ensureAudioContext]);
 
   const handleCardClick = useCallback(
     (index: number) => {
