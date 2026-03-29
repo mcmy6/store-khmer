@@ -29,12 +29,12 @@ export default function HomeScreen({ onSelectDifficulty }: HomeScreenProps) {
           STORE KHMER
         </h1>
         <p className="text-lg sm:text-xl font-semibold text-[#75282B] mb-6">
-          matching game
+          Cambodian Matching Game
         </p>
 
         {/* Description */}
         <p className="text-center text-[#75282B] font-semibold max-w-sm mb-10 text-sm sm:text-base">
-          Hurry, help ma-yay pick up groceries at Store Khmer before Khmer New Year!
+          {"Ma-yay needs your help! Match the groceries before Khmer New Year — she's counting on you!"}
         </p>
 
         {/* Difficulty buttons */}
@@ -50,14 +50,8 @@ export default function HomeScreen({ onSelectDifficulty }: HomeScreenProps) {
           ))}
         </div>
 
-        {/* More info link */}
-        <a
-          href="#"
-          className="mt-8 text-[#75282B] underline text-sm font-semibold"
-        >
-          More info
-        </a>
       </div>
+
     </div>
   );
 }

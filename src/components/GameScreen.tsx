@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Difficulty, DIFFICULTIES, Card as CardType, shuffleCards } from "@/data/vocabulary";
+import { Difficulty, DIFFICULTIES, Card as CardType, VocabItem, shuffleCards } from "@/data/vocabulary";
 import GameCard from "./Card";
-import GroceryList from "./GroceryList";
+import GroceryBag from "./GroceryBag";
 
 interface GameScreenProps {
   difficulty: Difficulty;
@@ -13,7 +13,8 @@ interface GameScreenProps {
 
 export default function GameScreen({ difficulty, onComplete, onHome }: GameScreenProps) {
   const config = DIFFICULTIES[difficulty];
-  const [cards, setCards] = useState<CardType[]>(() => shuffleCards(config.items));
+  const [cards, setCards] = useState<CardType[]>(() => shuffleCards(config.items, difficulty));
+  const [collectedItems, setCollectedItems] = useState<VocabItem[]>([]);
   const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
   const [matchedIds, setMatchedIds] = useState<string[]>([]);
   const [flipCount, setFlipCount] = useState(0);
@@ -24,6 +25,7 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
   );
   const audioCache = useRef<Map<string, HTMLAudioElement>>(new Map());
   const activeAudio = useRef<HTMLAudioElement | null>(null);
+  const audioCtx = useRef<AudioContext | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasCompleted = useRef(false);
   const flipCountRef = useRef(0);
@@ -70,6 +72,26 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [config.timer]);
+
+  // Beep countdown at 5 seconds
+  useEffect(() => {
+    if (timeRemaining !== null && timeRemaining > 0 && timeRemaining <= 5) {
+      if (!audioCtx.current) {
+        audioCtx.current = new AudioContext();
+      }
+      const ctx = audioCtx.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(timeRemaining === 1 ? 880 : 660, ctx.currentTime);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    }
+  }, [timeRemaining]);
 
   // Check timer expiry
   useEffect(() => {
@@ -135,6 +157,10 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
             // Match!
             setTimeout(() => {
               setMatchedIds((prev) => [...prev, card1.id]);
+              const matchedItem = config.items.find(item => item.id === card1.id);
+              if (matchedItem) {
+                setCollectedItems(prev => [...prev, matchedItem]);
+              }
               setCards((prev) =>
                 prev.map((c, i) =>
                   i === first || i === second ? { ...c, isMatched: true } : c
@@ -173,13 +199,13 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
         <div className="flex items-center justify-between max-w-md mx-auto">
           <button
             onClick={onHome}
-            className="text-[#75282B] font-semibold text-sm"
+            className="text-[#75282B] font-semibold text-lg"
           >
-            ← Back
+            ←
           </button>
-          <h1 className="text-lg font-bold text-[#75282B]">Store Khmer</h1>
+          <h1 className="text-lg font-bold text-[#75282B] uppercase tracking-wide">STORE KHMER</h1>
           <div className="text-sm font-semibold text-[#75282B] bg-[#F2E6C9] px-3 py-1 rounded-full">
-            {config.label}
+            🛒 {collectedItems.length}/{config.pairs}
           </div>
         </div>
 
@@ -229,11 +255,12 @@ export default function GameScreen({ difficulty, onComplete, onHome }: GameScree
         </div>
       </div>
 
-      {/* Grocery list */}
+      {/* Ma-yay's shopping cart */}
       <div className="px-4">
-        <GroceryList
-          items={[...config.items]}
-          matchedIds={matchedIds}
+        <GroceryBag
+          collectedItems={collectedItems}
+          totalSlots={config.pairs}
+          difficulty={difficulty}
         />
       </div>
     </div>
