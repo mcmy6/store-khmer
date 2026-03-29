@@ -130,6 +130,16 @@ export default function CompletionScreen({
           </button>
         </div>
 
+        {/* Feedback link */}
+        <a
+          href="https://forms.gle/Pah1MZPp4AuqR9RbA"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 text-sm text-[#8B5E3C] underline underline-offset-2 hover:text-[#75282B] transition-colors"
+        >
+          📝 Share your feedback (30 sec)
+        </a>
+
       </div>
     </div>
   );

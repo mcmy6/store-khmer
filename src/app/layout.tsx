@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Quicksand, Pixelify_Sans, Caveat, Noto_Sans_Khmer } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const quicksand = Quicksand({
@@ -55,6 +56,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-[family-name:var(--font-quicksand)]">
         {children}
+        <Analytics />
       </body>
     </html>
   );
